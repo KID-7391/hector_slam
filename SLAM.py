@@ -3,13 +3,15 @@ from GridMap import GridMap
 import tf
 import numpy as np
 import time
+from laser_geometry import LaserProjection
+import cv2
+import sensor_msgs.point_cloud2 as pc2
 import ctypes
 lib = ctypes.cdll.LoadLibrary('./c_extern/map_update.so')
 
 ## main class
 class SLAM():
-    def __init__(self, raw_data, gridmap, gui):
-        self.raw_data = raw_data
+    def __init__(self, gridmap, gui):
         self.gridmap = gridmap
         self.map_ptr = self.gridmap.map.ctypes.data_as(ctypes.c_char_p)
         self.prob_ptr = self.gridmap.prob.ctypes.data_as(ctypes.c_char_p)
@@ -22,15 +24,13 @@ class SLAM():
         scan_base[0, 3] = radar_x
         scan_base[1, 3] = radar_y
         self.scan_base = scan_base
-        self.idx = 0
-        self.T = len(self.raw_data)
         self.gui = gui
 
     def run(self):
         pass
 
-    def forward(self):
-        scan, odom = self.raw_data[self.idx]
+    def forward(self, msg=None):
+        scan, odom = self.data_preprocess(msg)
         try:
             last_odom = self.last_odom
             self.last_odom = odom
@@ -123,3 +123,24 @@ class SLAM():
         map_idx = self.gridmap.world2map(world_idx)
         tmp = scan_world[:, :2]
         return map_idx, scan_world[:, :2]
+
+    def data_preprocess(self, msg):
+        laser_projector = LaserProjection()
+        cloud = laser_projector.projectLaser(msg.scan)
+        pts = pc2.read_points(cloud, field_names=("x", "y", "z"), skip_nans=True)
+        scan = []
+        for p in pts:
+            scan.append([p[0], p[1]])
+        scan = np.array(scan)
+
+        qx = msg.odom.pose.pose.orientation.x
+        qy = msg.odom.pose.pose.orientation.y
+        qz = msg.odom.pose.pose.orientation.z
+        qw = msg.odom.pose.pose.orientation.w
+
+        odom = tf.transformations.quaternion_matrix((qx,qy,qz,qw))
+        odom[0,3] = msg.odom.pose.pose.position.x
+        odom[1,3] = msg.odom.pose.pose.position.y
+        odom[2,3] = msg.odom.pose.pose.position.z
+
+        return scan, odom

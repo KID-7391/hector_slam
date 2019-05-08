@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 class GridMap:
-    def __init__(self, size=[800, 800], resolution=40.):
+    def __init__(self, size=[5000, 5000], resolution=40.):
         self.size = np.array(size, dtype=np.int32)
         self.resolution = resolution
         self.ori_point = np.array([size[0]//2, size[1]//2])

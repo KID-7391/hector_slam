@@ -10,6 +10,7 @@ import Queue
 import sys
 import time
 import threading
+import cv2
 
 
 class RobotItem(QtGui.QGraphicsItem):
@@ -46,38 +47,39 @@ class LSLAMGUI(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.q = Queue.Queue()
-        self.state = 0 
+        self.state = 0
 
     def run(self):
+        self.state = 1
         ## Always start by initializing Qt (only once per application)
-        app = QtGui.QApplication([])
+        self.app = QtGui.QApplication([])
 
         ## Define a top-level widget to hold everything
         w = QtGui.QWidget()
-        w.resize(800,900)
+        w.resize(800,500)
         w.setWindowTitle("LiDAR SLAM Viewer")
 
         ## Create some widgets to be placed inside
         #text = QtGui.QLineEdit('enter text')
 
         p2d = pg.GraphicsView()
-        p3d = gl.GLViewWidget()
-        button_play = QtGui.QPushButton('Play')
-        button_play.setFixedWidth(110)
+        # p3d = gl.GLViewWidget()
+        button_exit = QtGui.QPushButton('Exit')
+        button_exit.setFixedWidth(110)
 
-        button_play.clicked.connect(self.handleButton_play)
-        button_next = QtGui.QPushButton('Next')
-        button_next.setFixedWidth(110)
+        button_exit.clicked.connect(self.exit)
+        # button_next = QtGui.QPushButton('Next')
+        # button_next.setFixedWidth(110)
 
-        button_next.clicked.connect(self.handleButton_next)
-        button_back = QtGui.QPushButton('Back')
-        button_back.setFixedWidth(110)
+        # button_next.clicked.connect(self.handleButton_next)
+        # button_back = QtGui.QPushButton('Back')
+        # button_back.setFixedWidth(110)
 
-        button_back.clicked.connect(self.handleButton_back)
+        # button_back.clicked.connect(self.handleButton_back)
         # self.checkbox_gaussian = QtGui.QCheckBox("Use gaussian")
         # self.checkbox_gaussian.setChecked(False)
         #checkbox_gaussian.stateChanged.connect(self.handleCheckbox_gaussian)
-        p3d.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        # p3d.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         #g = gl.GLGridItem()
         #p3d.addItem(g)
 
@@ -87,11 +89,11 @@ class LSLAMGUI(threading.Thread):
 
         ## Add widgets to the layout in their proper positions
         layout.addWidget(p2d, 0, 0, 1, 5)  
-        layout.addWidget(p3d, 1, 0, 1, 5) 
+        # layout.addWidget(p3d, 1, 0, 1, 5) 
         #layout.addWidget(text, 2, 1) 
-        layout.addWidget(button_play, 2, 0)
-        layout.addWidget(button_next, 2, 1)
-        layout.addWidget(button_back, 2, 2)
+        layout.addWidget(button_exit, 2, 0)
+        # layout.addWidget(button_next, 2, 1)
+        # layout.addWidget(button_back, 2, 2)
         # layout.addWidget(self.checkbox_gaussian,2,3)
         #layout.addWidget(text, 2, 4)
 
@@ -133,20 +135,20 @@ class LSLAMGUI(threading.Thread):
         timer.start(300)
 
         ## Start the Qt event loop
-        app.exec_()
+        self.app.exec_()
 
-
-    def handleCheckbox_gaussian(self):
-        self.state = 1  
-
-    def handleButton_play(self):
-        self.state = 1  
-
-    def handleButton_next(self):
-        self.state = 2  
-
-    def handleButton_back(self):
-        self.state = 3 
+    def exit(self):
+        print 'exit'
+        self.state = -1
+        try:
+            prob_map = self.prob
+            img = np.uint8(255 - prob_map*255)
+            img = np.rot90(img)
+            cv2.imwrite('map.pgm', img)
+            self.app.exit(0)
+            # sys.exit(0)
+        except:
+            pass
 
     def update(self):
         try:
@@ -159,6 +161,7 @@ class LSLAMGUI(threading.Thread):
             # self.prob_map.setData(z=data)
             I = np.zeros(prob.shape)
             I.fill(1)
+            self.prob = prob
             self.img.setImage(I - prob)
             #update robot pose
             self.robot.setRotation(180.*pose[2]/np.pi)
