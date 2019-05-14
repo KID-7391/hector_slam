@@ -11,6 +11,7 @@ import sys
 import time
 import threading
 import cv2
+import pickle as pkl
 
 
 class RobotItem(QtGui.QGraphicsItem):
@@ -30,7 +31,7 @@ class RobotItem(QtGui.QGraphicsItem):
     def paint(self, painter, option, widget):
         #Draw a sample robot
         pen = QtGui.QPen()
-        pen.setWidth(1);
+        pen.setWidth(1)
         if self.color =='r':
             pen.setBrush(QtCore.Qt.red)
         elif self.color =='b':
@@ -66,12 +67,12 @@ class LSLAMGUI(threading.Thread):
         # p3d = gl.GLViewWidget()
         button_exit = QtGui.QPushButton('Exit')
         button_exit.setFixedWidth(110)
-
         button_exit.clicked.connect(self.exit)
-        # button_next = QtGui.QPushButton('Next')
-        # button_next.setFixedWidth(110)
 
-        # button_next.clicked.connect(self.handleButton_next)
+        button_nav = QtGui.QPushButton('Navigate')
+        button_nav.setFixedWidth(110)
+        button_nav.clicked.connect(self.handleButton_nav)
+
         # button_back = QtGui.QPushButton('Back')
         # button_back.setFixedWidth(110)
 
@@ -92,7 +93,7 @@ class LSLAMGUI(threading.Thread):
         # layout.addWidget(p3d, 1, 0, 1, 5) 
         #layout.addWidget(text, 2, 1) 
         layout.addWidget(button_exit, 2, 0)
-        # layout.addWidget(button_next, 2, 1)
+        layout.addWidget(button_nav, 2, 1)
         # layout.addWidget(button_back, 2, 2)
         # layout.addWidget(self.checkbox_gaussian,2,3)
         #layout.addWidget(text, 2, 4)
@@ -142,18 +143,34 @@ class LSLAMGUI(threading.Thread):
         self.state = -1
         try:
             prob_map = self.prob
+            res = {'map':self.prob,
+                   'init_pose':self.pose,
+                   'resolution':self.resolution,
+                   'original_point':self.ori_point
+                  }
+            print 'start saving'
+            with open('map.pkl', 'w') as f:
+                pkl.dump(res, f)
+            print 'done.'
             img = np.uint8(255 - prob_map*255)
             img = np.rot90(img)
             cv2.imwrite('map.pgm', img)
             self.app.exit(0)
             # sys.exit(0)
         except:
-            pass
+            print 'fail'
+
+    def handleButton_nav(self):
+        self.state = 2
 
     def update(self):
         try:
             #Check is there any new data in queue
-            prob, pose, newscan = self.q.get(block=False)
+            prob, pose, newscan, resolution, ori_point = self.q.get(block=False)
+            self.prob = prob
+            self.pose = pose
+            self.resolution = resolution
+            self.ori_point = ori_point
             self.q.queue.clear()
             #remove previous laser scan data
             self.sct.clear()
@@ -161,7 +178,6 @@ class LSLAMGUI(threading.Thread):
             # self.prob_map.setData(z=data)
             I = np.zeros(prob.shape)
             I.fill(1)
-            self.prob = prob
             self.img.setImage(I - prob)
             #update robot pose
             self.robot.setRotation(180.*pose[2]/np.pi)
@@ -173,8 +189,8 @@ class LSLAMGUI(threading.Thread):
         except Queue.Empty:
             pass
 
-    def setdata(self, probdata, robotpose, newscan):
-        self.q.put((probdata, robotpose, newscan))
+    def setdata(self, probdata, robotpose, newscan, resolution, ori_point):
+        self.q.put((probdata, robotpose, newscan, resolution, ori_point))
         pass
 
 if __name__ == "__main__":

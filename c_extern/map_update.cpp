@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "map_update.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include "map_update.hpp"
 
+extern "C"
 void map_update(double *map, double *prob, double *map_idx, int n,
              double px, double py, int dimx){
     for(int i = 0; i < n; i++){
@@ -27,7 +28,7 @@ void update_line(double *map, double *prob, double startx, double starty,
     int x2 = (int)(endx + 0.5), y2 = (int)(endy + 0.5);
     double dx = endx - startx, dy = endy - starty;
     double k = -startx*endy + endx*starty;
-    if(dx < 0.05 && dy < 0.05){
+    if(abs(dx) < 0.05 && abs(dy) < 0.05){
         update_point(map, prob, x1, y1, add, dimx);
         return ;
     }

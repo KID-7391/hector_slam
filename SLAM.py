@@ -37,6 +37,7 @@ class SLAM():
         except:
             self.last_odom = odom
             self.pose = self.mat2pose(odom)
+            self.init_pose = self.pose
             return
         
         pose_mat = self.motion_estimate(last_odom, odom)
@@ -44,9 +45,12 @@ class SLAM():
         delta_pose = self.scan_match(map_idx, scan_world)
         self.pose = self.pose + delta_pose
 
+        # print self.pose
+
         self.map_update(map_idx)
+        # print self.pose
         if self.gui:
-            self.gui.setdata(self.gridmap.prob, self.pose, map_idx)
+            self.gui.setdata(self.gridmap.prob, self.pose, map_idx, self.gridmap.resolution, self.gridmap.ori_point)
 
     ## estimate motion with odom data
     def motion_estimate(self, last_odom, odom):
@@ -114,15 +118,22 @@ class SLAM():
         m_pts = self.gridmap.world2map(np.array([[odom[0, 3], odom[1, 3]]]))
         return np.array([m_pts[0, 0], m_pts[0, 1], phi])
 
-    ## transform scan from scan_base to world_base with odom
-    def scan2world(self, scan, odom):
+    ## transform scan from scan_base to world_base with pose matrix
+    def scan2world(self, scan, pose_mat):
         scan_full = np.insert(scan, 2, values=0., axis=1)
         scan_full = np.insert(scan_full, 3, values=1., axis=1)
         scan_world = np.matmul(scan_full, self.scan_base.T)
-        world_idx = np.matmul(scan_world, odom.T)[:, :2]
+        world_idx = np.matmul(scan_world, pose_mat.T)[:, :2]
         map_idx = self.gridmap.world2map(world_idx)
-        tmp = scan_world[:, :2]
         return map_idx, scan_world[:, :2]
+
+    ## transform point from world_base to robot_base with pose matrix
+    def world2robot(self, p, pose_mat):
+        p = (p - self.gridmap.ori_point) / self.gridmap.resolution
+        p = np.insert(p, 2, values=0., axis=0)
+        p = np.insert(p, 3, values=1., axis=0)
+        w_p = np.matmul(p, np.linalg.inv(pose_mat).T)[:2]
+        return w_p
 
     def data_preprocess(self, msg):
         laser_projector = LaserProjection()

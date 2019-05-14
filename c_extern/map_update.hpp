@@ -4,6 +4,7 @@
 #define max(x, y) ((x)>=(y)?(x):(y))
 #define min(x, y) ((x)<=(y)?(x):(y))
 
+extern "C"
 void map_update(double *map, double *prob, double *map_idx, int n,
              double px, double py, int dimx);
 

@@ -1,8 +1,9 @@
+from path_planning import PathPlanner
 import numpy as np
 import time
 
 class GridMap:
-    def __init__(self, size=[5000, 5000], resolution=40.):
+    def __init__(self, size=[1000, 1000], resolution=40.):
         self.size = np.array(size, dtype=np.int32)
         self.resolution = resolution
         self.ori_point = np.array([size[0]//2, size[1]//2])
@@ -31,6 +32,14 @@ class GridMap:
         dy = (p2 - p0) * (1-factx) + (p3 - p1) * factx
 
         return [M_p, dx, dy]
+    
+    def path_planning_map(self, p_start, p_end):
+        path_planner = PathPlanner(self.prob)
+        return path_planner.path_planning(p_start, p_end)
+
+    def path_planning_world(self, w_start, w_end):
+        p_start, p_end = self.world2map([w_start, w_end])
+        return self.path_planning_map(p_start, p_end)
 
     # ## get all points in the line
     # def get_line(self, start, end):

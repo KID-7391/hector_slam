@@ -1,3 +1,6 @@
 *.pyc
 c_extern/*.so
 *.bag
+*.pgm
+*.pkl
+*.png
