@@ -26,9 +26,6 @@ class SLAM():
         self.scan_base = scan_base
         self.gui = gui
 
-    def run(self):
-        pass
-
     def forward(self, msg=None):
         scan, odom = self.data_preprocess(msg)
         try:
@@ -45,12 +42,14 @@ class SLAM():
         delta_pose = self.scan_match(map_idx, scan_world)
         self.pose = self.pose + delta_pose
 
-        # print self.pose
+        print self.pose
 
         self.map_update(map_idx)
-        # print self.pose
+
         if self.gui:
-            self.gui.setdata(self.gridmap.prob, self.pose, map_idx, self.gridmap.resolution, self.gridmap.ori_point)
+           self.gui.setdata(self.gridmap.prob, self.pose, map_idx, self.gridmap.resolution, self.gridmap.ori_point)
+
+
 
     ## estimate motion with odom data
     def motion_estimate(self, last_odom, odom):
@@ -138,11 +137,8 @@ class SLAM():
     def data_preprocess(self, msg):
         laser_projector = LaserProjection()
         cloud = laser_projector.projectLaser(msg.scan)
-        pts = pc2.read_points(cloud, field_names=("x", "y", "z"), skip_nans=True)
-        scan = []
-        for p in pts:
-            scan.append([p[0], p[1]])
-        scan = np.array(scan)
+        pts = list(pc2.read_points(cloud, field_names=("x", "y", "z"), skip_nans=True))
+        scan = np.array(pts)[:, :2]
 
         qx = msg.odom.pose.pose.orientation.x
         qy = msg.odom.pose.pose.orientation.y

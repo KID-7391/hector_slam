@@ -36,17 +36,17 @@ def test():
     ctrler.main_control()
 
 if __name__ == "__main__":
-    # test()
-    from math import cos, sin, pi
-    p = np.array([259, 396, 0, 1])
-    p[:2] = (p[:2] - np.array([500, 500])) / 40.
-    # p = np.array([-1, 1, 0, 1])
-    M = np.array([
-        [cos(30*pi/180), -sin(30*pi/180), 0, 1],
-        [sin(30*pi/180), cos(30*pi/180), 0, 1],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
-    print np.matmul(p, np.linalg.inv(M).T)
+    test()
+    # from math import cos, sin, pi
+    # p = np.array([259, 396, 0, 1])
+    # p[:2] = (p[:2] - np.array([500, 500])) / 40.
+    # # p = np.array([-1, 1, 0, 1])
+    # M = np.array([
+    #     [cos(30*pi/180), -sin(30*pi/180), 0, 1],
+    #     [sin(30*pi/180), cos(30*pi/180), 0, 1],
+    #     [0, 0, 1, 0],
+    #     [0, 0, 0, 1]
+    # ])
+    # print np.matmul(p, np.linalg.inv(M).T)
     # tester = TESTER()
     # tester.test()

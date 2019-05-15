@@ -139,28 +139,33 @@ class LSLAMGUI(threading.Thread):
         self.app.exec_()
 
     def exit(self):
-        print 'exit'
+        # print 'exit'
         self.state = -1
+        prob_map = self.prob
+        res = {'map':self.prob,
+                'init_pose':self.pose,
+                'resolution':self.resolution,
+                'original_point':self.ori_point
+                }
+        print 'start saving'
+        with open('map.pkl', 'w') as f:
+            pkl.dump(res, f)
+        print 'done.'
+        img = np.uint8(255 - prob_map*255)
+        img = np.rot90(img)
+        cv2.imwrite('map.pgm', img)
+
         try:
-            prob_map = self.prob
-            res = {'map':self.prob,
-                   'init_pose':self.pose,
-                   'resolution':self.resolution,
-                   'original_point':self.ori_point
-                  }
-            print 'start saving'
-            with open('map.pkl', 'w') as f:
-                pkl.dump(res, f)
-            print 'done.'
-            img = np.uint8(255 - prob_map*255)
-            img = np.rot90(img)
-            cv2.imwrite('map.pgm', img)
             self.app.exit(0)
             # sys.exit(0)
         except:
             print 'fail'
 
     def handleButton_nav(self):
+        # try:
+        #     self.app.exit(0)
+        # except:
+        #     pass
         self.state = 2
 
     def update(self):
