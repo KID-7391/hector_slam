@@ -42,7 +42,7 @@ class SLAM():
         delta_pose = self.scan_match(map_idx, scan_world)
         self.pose = self.pose + delta_pose
 
-        print self.pose
+        # print self.pose
 
         self.map_update(map_idx)
 

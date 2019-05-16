@@ -3,7 +3,6 @@ import pickle as pkl
 import cv2
 from matplotlib import pyplot as plt
 import ctypes
-from scipy.interpolate import spline
 lib = ctypes.cdll.LoadLibrary('./c_extern/find_path.so')
 
 class PathPlanner:
@@ -17,7 +16,7 @@ class PathPlanner:
         
         idx = np.where(prob != 0.5)
         x_min = max(0, np.min(idx[0]) - 20)
-        x_max = min(prob.shape[0], np.max(idx[0]) + 20) 
+        x_max = min(prob.shape[0], np.max(idx[0]) + 20)
         y_min = max(0, np.min(idx[1]) - 20)
         y_max = min(prob.shape[1], np.max(idx[1]) + 20)
         size = prob.shape
@@ -25,7 +24,7 @@ class PathPlanner:
         prob[np.where(prob > 0.5)] = 1
         prob_tmp = prob.copy()
         prob_tmp[np.where(prob_tmp <= 0.51)] = 0
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 20))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 30))
         dilation = cv2.dilate(prob_tmp, kernel, iterations=1)
         dilation = np.maximum(dilation, prob)
 
@@ -147,8 +146,8 @@ class PathPlanner:
 
         cv2.circle(self.ori_prob, (int(path[0][1]), int(path[0][0])), 3, [32])
         cv2.circle(self.ori_prob, (int(path[-1][1]), int(path[-1][0])), 3, [32])
-        plt.imshow(np.rot90(self.ori_prob))
-        plt.show()
+        # plt.imshow(np.rot90(self.ori_prob))
+        # plt.show()
 
 
         return path_smooth
