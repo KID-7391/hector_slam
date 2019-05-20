@@ -8,11 +8,11 @@ import rospy
 from geometry_msgs.msg import Twist
 import time
 
-max_speed = 0.3
-max_turn = 0.2
+max_speed = 0.2
+max_turn = 0.4
 
 class Controller:
-    def __init__(self, k_rho=0.5, k_alpha=0.8, k_beta=-0.15, threshold=1.):
+    def __init__(self, k_rho=0.5*3, k_alpha=0.8*3, k_beta=-0.15*3, threshold=0.05):
         assert k_rho >= 0 and k_beta <=0 and k_alpha >= k_rho, 'Bad parameters.'
         rospy.init_node('test_control', anonymous=True)
         self.pub = rospy.Publisher('/cmd_vel_mux/input/teleop', Twist, queue_size=5)
@@ -74,58 +74,86 @@ class Controller:
 
         # print x, y, theta
 
-        if theta > pi:
-            theta -= 2*pi
-        elif theta < -pi:
+        while theta < 0:
             theta += 2*pi
+        while theta > 2*pi:
+            theta -= 2*pi
 
         rho = sqrt(x**2 + y**2)
-        alpha = -theta + atan2(y, x)
+        beta = -atan2(y, x)
 
-        if abs(y/x) < 1e-3:
-            alpha = -theta
+        try:
+            last_beta = self.last_beta
+            last_theta = self.last_theta
+            # print self.last_alpha, self.last_beta
+            while beta - last_beta > (2 - 0.2)*pi:
+                beta -= 2*pi
+            while beta - last_beta < -(2 - 0.2)*pi:
+                beta += 2*pi
+            while theta - last_theta > (2 - 0.2)*pi:
+                theta -= 2*pi
+            while theta - last_theta < -(2 - 0.2)*pi:
+                theta += 2*pi
+        except:
+            pass
 
-        if abs(y/x) > 1e3:
-            if y >= 0:
-                alpha = -theta + pi / 2.
-            else:
-                alpha = -theta - pi / 2.
+        alpha = -theta - beta
+        # beta = max(beta, -2)
+        # beta = min(beta, 2)
+        print rho, alpha, beta
+
+        self.last_beta = beta
+        self.last_theta = theta
+
+        # if abs(y/x) < 0.05 and x < 0:
+        #     beta = pi
+
+        # if abs(y/x) > 1e3:
+        #     if y >= 0:
+        #         beta = pi / 2.
+        #     else:
+        #         beta = - pi / 2.
 
 
-        if alpha >= pi:
-            alpha -= 2*pi
-        elif alpha < -pi:
-            alpha += 2*pi
 
-        beta = -theta - alpha
-
-        print theta, beta, alpha
         
         v = self.k_rho*rho
-        w = self.k_alpha*alpha + self.k_beta*beta
+        # w = self.k_alpha*alpha + self.k_beta*beta
 
-        if rho < 0.1:
-            w = rho / 0.1 * self.k_alpha*alpha + self.k_beta*beta
+        if rho < 0.15:
+            w = (rho / 0.15)**2 * self.k_alpha*alpha + self.k_beta*beta
+        else:
+            w = self.k_alpha*alpha + (0.15 / rho)**2 * self.k_beta*beta
 
-
-        return np.array([self.k_rho*rho, self.k_alpha*alpha + self.k_beta*beta])
+        return np.array([v, w])
 
 
     def forward(self):
-        k = self.k
-        pk = self.path[k]
         pose = self.slam.pose
-        pose_mat = self.slam.pose2mat(pk)
-        cur_pose_in_goal = self.slam.world2robot(pose[:2], pose_mat)
+        while True:
+            k = self.k
+            pk = self.path[k]
+            pose_mat = self.slam.pose2mat(pk)
+            cur_pose_in_goal = self.slam.world2robot(pose[:2], pose_mat)
+            
+
+            theta = 1.*pose[2] - pk[2]
+            if theta >= pi:
+                theta = -2*pi + theta
+            elif theta < -pi:
+                theta = 2*pi + theta
+            cur_pose_in_goal = np.insert(cur_pose_in_goal, 2, values=theta, axis=0)
+            print self.k, cur_pose_in_goal
+            if self.k < len(self.path) and np.sum(np.square(cur_pose_in_goal)) < self.threshold:
+                self.k += 1
+            else:
+                break
+ 
+            if self.k == len(self.path):
+                print 'done.'
+                return    
+                
         
-
-
-        theta = 1.*pose[2] - pk[2]
-        if theta >= pi:
-            theta = -2*pi + theta
-        elif theta < -pi:
-            theta = 2*pi + theta
-        cur_pose_in_goal = np.insert(cur_pose_in_goal, 2, values=theta, axis=0)
         # print '*'*20
         # print pose, pk
         # print 'pose:', cur_pose_in_goal
@@ -138,7 +166,7 @@ class Controller:
         # ])
         # e_pose = np.matmul(pk - pose, T_mat)
 
-        v, w = self.get_input(e_pcur_pose_in_goal)
+        v, w = self.get_input(cur_pose_in_goal)
         self.publish(v, w)
     
     def publish(self, v, w):
@@ -187,10 +215,10 @@ class Controller:
                 path = self.slam.gridmap.path_planning_map(p_start.copy(), p_end.copy())
                 self.get_path(path)
             else:
-                while self.k < len(self.path) and np.sqrt(np.sum(np.square(pose - self.path[self.k]))) < self.threshold:
-                    self.k += 1
-                # print 'k = ', self.k
-                if self.k < len(self.path):
+                if self.k == len(self.path):
+                    pass
+                else:
                     self.forward()
+                    
 
         self.slam.forward(msg)

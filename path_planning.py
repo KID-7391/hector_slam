@@ -65,7 +65,6 @@ class PathPlanner:
         #         t = 1. * i / n_spline
         #         T = 1. / 6. * np.array([t**3, t**2, t, 1], dtype=np.float)
         #         new_pts.append(np.matmul(T, M_P))
-        
 
         idx = 1
         while idx + 1 < len(pts):
@@ -77,18 +76,18 @@ class PathPlanner:
             m2 += pts[idx] - m
 
             if idx == 1:
-                for i in range(1, n_spline):
+                for i in range(n_spline):
                     t = 1. * i / n_spline
                     p = ((1-t)**2)*pts[0] + 2*t*(1-t)*m1 + (t**2)*pts[1]
                     new_pts.append(p)
             else:
-                for i in range(1, n_spline):
+                for i in range(n_spline):
                     t = 1. * i / n_spline
                     p = ((1-t)**3)*pts[idx-1] + 3*t*((1-t)**2)*last_m2 + 3*(t**2)*(1-t)*m1 + (t**3)*pts[idx]
                     new_pts.append(p)
 
             if idx == len(pts) - 2:
-                for i in range(1, n_spline + 1):
+                for i in range(n_spline + 1):
                     t = 1. * i / n_spline
                     p = ((1-t)**2)*pts[idx] + 2*t*(1-t)*last_m2 + (t**2)*pts[idx+1]
                     new_pts.append(p)
@@ -105,7 +104,7 @@ class PathPlanner:
         ori_size = self.ori_size
         p_start -= ori_box[:2]
         p_end -= ori_box[:2]
-        r = self.random_points_generate(map, 5000)
+        r = self.random_points_generate(map, 1000)
         r.append(p_start)
         r.append(p_end)
 
@@ -146,6 +145,7 @@ class PathPlanner:
 
         cv2.circle(self.ori_prob, (int(path[0][1]), int(path[0][0])), 3, [32])
         cv2.circle(self.ori_prob, (int(path[-1][1]), int(path[-1][0])), 3, [32])
+        cv2.imwrite('path.png', np.rot90(self.ori_prob))
         # plt.imshow(np.rot90(self.ori_prob))
         # plt.show()
 
