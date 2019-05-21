@@ -5,6 +5,8 @@
 实现功能为控制机器人建图，然后自动导航回原位置，主要分为SLAM、路径规划、路径跟踪三个部分。
 代码主要由Python实现，少部分为了效率，用C++实现。原则是简单易实现，暂不考虑精度，总代码量在700行左右。源码已上传至github:https://github.com/KID-7391/hector_slam
 
+ros下编译运行data_wrapper，再运行test.py
+
 1.hector slam 实现:https://github.com/KID-7391/hector_slam/blob/master/doc/hector_slam.md
 
 2.路径规划:https://github.com/KID-7391/hector_slam/blob/master/doc/path_planning.md
