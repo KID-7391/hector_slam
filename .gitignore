@@ -3,4 +3,5 @@ c_extern/*.so
 *.bag
 *.pgm
 *.pkl
-*.png
+path.png
+floorplan.png
