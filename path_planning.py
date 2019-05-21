@@ -51,20 +51,6 @@ class PathPlanner:
     def smooth(self, pts):
         new_pts = []
         n_spline = 5
-        # M = np.array([
-        #     [-1, 3, -3, 1],
-        #     [3, -6, 3, 0],
-        #     [-3, 0, 3, 0],
-        #     [1, 4, 1, 0]
-        # ], dtype=np.float)
-        # while idx + 3 < len(pts):
-        #     P = pts[idx:idx+4, :]
-        #     idx += 1
-        #     M_P = np.matmul(M, P)
-        #     for i in range(n_spline):
-        #         t = 1. * i / n_spline
-        #         T = 1. / 6. * np.array([t**3, t**2, t, 1], dtype=np.float)
-        #         new_pts.append(np.matmul(T, M_P))
 
         idx = 1
         while idx + 1 < len(pts):
@@ -107,13 +93,6 @@ class PathPlanner:
         r = self.random_points_generate(map, 1000)
         r.append(p_start)
         r.append(p_end)
-
-        # r = np.array([
-        #     [400, 400],
-        #     [410, 420],
-        #     [420, 400],
-        #     [450, 420]
-        # ])
 
         r = np.array(r, dtype=np.int32)
 
@@ -158,9 +137,3 @@ if __name__ == "__main__":
     prob = res['map']
     path_planner = PathPlanner(prob)
     path = path_planner.path_planning([400, 400], [850, 300])
-    # print path
-
-    # print len(path)
-
-    # plt.imshow(prob)
-    # plt.show()

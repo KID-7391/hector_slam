@@ -74,9 +74,9 @@ class Controller:
 
         # print x, y, theta
 
-        while theta < 0:
+        while theta < -pi:
             theta += 2*pi
-        while theta > 2*pi:
+        while theta > pi:
             theta -= 2*pi
 
         rho = sqrt(x**2 + y**2)
@@ -152,30 +152,11 @@ class Controller:
             if self.k == len(self.path):
                 print 'done.'
                 return    
-                
-        
-        # print '*'*20
-        # print pose, pk
-        # print 'pose:', cur_pose_in_goal
-        # print '*'*20
-
-        # T_mat = np.array([
-        #     [cos(pose[2]), -sin(pose[2]), 0],
-        #     [sin(pose[2]), cos(pose[2]), 0],
-        #     [0, 0, 1]
-        # ])
-        # e_pose = np.matmul(pk - pose, T_mat)
 
         v, w = self.get_input(cur_pose_in_goal)
         self.publish(v, w)
     
     def publish(self, v, w):
-        # if abs(w) > 0.1:
-        #     v = 0
-        # v = min(v, max_speed)
-        # v = max(v, -max_speed)
-        # w = min(w, max_turn)
-        # w = max(w, -max_turn)
 
         k = 1.
         if abs(v) > max_speed:
