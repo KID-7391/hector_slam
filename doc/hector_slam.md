@@ -17,10 +17,9 @@
 这一步是为了将激光点云粗略地从机器人坐标系映射到世界坐标系。设k时刻的里程计对应变换矩阵为$T_k$，经过修正的姿态为$\widetilde{\xi}_k$，则可以初步估计k+1时刻姿态为$\widetilde{\xi}_kT^{-1}_kT_{k+1}$。
 
 ## scan matching
-设激光点云有n个点，我们希望估计一个姿态$\xi=\begin{bmatrix}x\\y\\ \theta\end{bmatrix}
-$，使得点云尽可能分布在障碍物上，使用最小二乘，即求  <center>$\xi=argmin_{\xi}\sum_{i=0}^n[1-M(S_i(\xi))]^2$,</center>  
+设激光点云有n个点，我们希望估计一个姿态$\xi=\begin{bmatrix}x\\y\\ \theta\end{bmatrix}$，使得点云尽可能分布在障碍物上，使用最小二乘，即求  <center>$\xi=argmin_{\xi}\sum_{i=0}^n[1-M(S_i(\xi))]^2$,</center>  
 
-其中$S_i(\xi)$表示第i个点在姿态$\xi$下的坐标，$M$为已有的地图。设姿态变化量为$\Delta\xi$，优化目标为  <center>$sum_{i=0}^n[1-M(S_i(\xi+\Delta\xi))]^2$，</center>   
+其中$S_i(\xi)$表示第i个点在姿态$\xi$下的坐标，$M$为已有的地图。设姿态变化量为$\Delta\xi$，优化目标为  <center>$\sum_{i=0}^n[1-M(S_i(\xi+\Delta\xi))]^2$，</center>   
 
 对其泰勒展开  
 <center>$\sum_{i=0}^n[1-M(S_i(\xi))-\nabla M(S_i(\xi))\frac{\partial S_i(\xi)}{\partial \xi}\Delta \xi]^2$</center>
@@ -32,7 +31,7 @@ $，使得点云尽可能分布在障碍物上，使用最小二乘，即求  <c
 <center>$\Delta\xi=H^{-1}\sum_{i=1}^n[\nabla M(S_i(\xi))\frac{\partial S_i(\xi)}{\partial \xi}]^T[1-M(S_i(\xi))]$</center>
 
 其中
-<center>$\sum_{i=1}^n[\nabla M(S_i(\xi))\frac{\partial S_i(\xi)}{\partial \xi}]^T[\nabla M(S_i(\xi))\frac{\partial S_i(\xi)}{\partial \xi}]$</center>
+<center>$H=\sum_{i=1}^n[\nabla M(S_i(\xi))\frac{\partial S_i(\xi)}{\partial \xi}]^T[\nabla M(S_i(\xi))\frac{\partial S_i(\xi)}{\partial \xi}]$</center>
 
 更新姿态为$\xi=\xi+\Delta\xi$。
 
@@ -66,10 +65,12 @@ $，使得点云尽可能分布在障碍物上，使用最小二乘，即求  <c
 
 其中的
 <center>
+$$
 \begin{bmatrix}
-  \frac{\partial M(S_i(\xi))}{\partial x}\\
+  \frac{\partial M(S_i(\xi))}{\partial x} \\
   \frac{\partial M(S_i(\xi))}{\partial y}
 \end{bmatrix}
+$$
 </center>
 
 可以用附近的四个点做双线性插值，不妨设$S_i(\xi)=\begin{bmatrix}x\\y\end{bmatrix}$，

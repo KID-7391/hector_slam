@@ -24,7 +24,7 @@ $$
 </center>
 
 如图转换到误差极坐标系下
-![image](/home/wen/rse/hector_slam/scripts/doc/aaa.png)
+![image](https://github.com/KID-7391/hector_slam/blob/master/doc/aaa.png)
 $\rho=\sqrt{\Delta x^2+\Delta y^2}$
 $\alpha=-\theta+arctan2(\Delta y, \Delta x)$
 $\beta=-\theta-\alpha$
@@ -73,7 +73,7 @@ $$
 $$
 </center>
 
-求出特征多项式$(\lamda+k_{rho})[\lamda^2+\lamda(k_{\alpha}-k_{\rho})-k_{\rho}k_{\beta}]$
+求出特征多项式$(\lambda+k_{\rho})[\lambda^2+\lambda(k_{\alpha}-k_{\rho})-k_{\rho}k_{\beta}]$
 从而得到收敛条件
 $k_{\rho}\ge 0, k_{\beta}\le 0, k_{\alpha}-k_{\rho}\ge 0$
 
