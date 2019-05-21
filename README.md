@@ -10,3 +10,5 @@
 2.路径规划:https://github.com/KID-7391/hector_slam/blob/master/doc/path_planning.md
 
 3.路径跟踪(线性控制器):https://github.com/KID-7391/hector_slam/blob/master/doc/ppath_tracking.md
+
+若文档公式不能正常显示，请参考　https://www.cnblogs.com/7391-KID/p/10896127.html
